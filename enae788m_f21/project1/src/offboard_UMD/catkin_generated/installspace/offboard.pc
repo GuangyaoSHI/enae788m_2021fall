@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: offboard
+Description: Description of offboard
+Version: 0.0.0
+Cflags: -I/opt/ros/melodic/include -I/opt/ros/melodic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include
+Libs: -L${prefix}/lib 
+Requires: roscpp sensor_msgs std_msgs

@@ -1,0 +1,1 @@
+rostopic pub -1 //mavros/setpoint_position/local geometry_msgs/PoseStamped "{header: {seq: auto, stamp: auto, frame_id: auto}, pose:{position: [0, 0, -10], orientation: auto}}"
