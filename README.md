@@ -1,2 +1,2 @@
 # enae788m_2021fall
-for homework and project (1)
+for homework and projects
