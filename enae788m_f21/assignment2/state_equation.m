@@ -3,7 +3,7 @@
 %the orientation at the beginning 
 %syms qx_0 qy_0 qz_0 qw_0 real
 %quaternion at time step t
-syms qx_t qy_t qz_t qw_t real
+syms qx qy qz qw real
 
 %compute the rotation quaternion from q_0 to q_t
 %q_t * q_0^-1
@@ -18,7 +18,7 @@ syms qx_t qy_t qz_t qw_t real
 % qx_0 = 0, qy_0 = 0, qz_0=0, qw_0=1;
 % qx_t = 0.1724458, qy_t = 0.54174325, qz_t = 0.06526868, qw_t = 0.82007115
 % eval(subs(q))
-q = [qx_t, qy_t, qz_t, qw_t];
+q = [qx, qy, qz, qw];
 
 %compute rotation matix from q_0 to q_t
 R_q = [2*q(4)^2+2*q(1)^2-1,     2*q(1)*q(2)-2*q(4)*q(3),   2*q(1)*q(3)+2*q(4)*q(2);
@@ -41,10 +41,10 @@ R_q = [2*q(4)^2+2*q(1)^2-1,     2*q(1)*q(2)-2*q(4)*q(3),   2*q(1)*q(3)+2*q(4)*q(
 %partial matrix
 %need to consider the transformation from body frame angular velocity to 
 %inertial frame
-Q_qt = [qw_t, -qz_t, qy_t;
-        qz_t, qw_t, -qx_t;
-        -qy_t, qx_t, qw_t;
-        -qx_t, -qy_t, -qz_t;
+Q_qt = [qw, -qz, qy;
+        qz, qw, -qx;
+        -qy, qx, qw;
+        -qx, -qy, -qz;
 ]
 
 
@@ -69,7 +69,7 @@ syms vx vy vz real
 %state = [p, a, q, w]
 f = [[px, py, pz]'+1/2*t_s^2*R_q'*([ax, ay, az]'); ...
      [ax, ay, az]'; ...
-     [qx_t, qy_t, qz_t, qw_t]'+1/2*Q_qt*([wx, wy, wz]'); ...
+     [qx, qy, qz, qw]'+1/2*Q_qt*([wx, wy, wz]'); ...
      [wx, wy, wz]'
 ]
 
@@ -90,30 +90,39 @@ h = [a'; q'; R_q*m0']
 %diff with respect to states
 F = [diff(f, px), diff(f, py), diff(f, pz), ...
     diff(f, ax), diff(f, ay), diff(f, az), ...
-    diff(f, qx_t), diff(f, qy_t), ...
-    diff(f, qz_t), diff(f, qw_t), ...
+    diff(f, qx), diff(f, qy), ...
+    diff(f, qz), diff(f, qw), ...
     diff(f, wx), diff(f, wy), diff(f, wz)
     ]
 
 
-[ 1, 0, 0, (t_s^2*(2*qw_t^2 + 2*qx_t^2 - 1))/2,       t_s^2*(qw_t*qz_t + qx_t*qy_t),      -t_s^2*(qw_t*qy_t - qx_t*qz_t), t_s^2*(2*ax*qx_t + ay*qy_t + az*qz_t),             t_s^2*(ay*qx_t - az*qw_t),             t_s^2*(ay*qw_t + az*qx_t), t_s^2*(2*ax*qw_t + ay*qz_t - az*qy_t),       0,       0,       0]
-[ 0, 1, 0,      -t_s^2*(qw_t*qz_t - qx_t*qy_t), (t_s^2*(2*qw_t^2 + 2*qy_t^2 - 1))/2,       t_s^2*(qw_t*qx_t + qy_t*qz_t),             t_s^2*(ax*qy_t + az*qw_t), t_s^2*(ax*qx_t + 2*ay*qy_t + az*qz_t),            -t_s^2*(ax*qw_t - az*qy_t), t_s^2*(2*ay*qw_t - ax*qz_t + az*qx_t),       0,       0,       0]
-[ 0, 0, 1,       t_s^2*(qw_t*qy_t + qx_t*qz_t),      -t_s^2*(qw_t*qx_t - qy_t*qz_t), (t_s^2*(2*qw_t^2 + 2*qz_t^2 - 1))/2,            -t_s^2*(ay*qw_t - ax*qz_t),             t_s^2*(ax*qw_t + ay*qz_t), t_s^2*(ax*qx_t + ay*qy_t + 2*az*qz_t), t_s^2*(ax*qy_t - ay*qx_t + 2*az*qw_t),       0,       0,       0]
-[ 0, 0, 0,                                   1,                                   0,                                   0,                                     0,                                     0,                                     0,                                     0,       0,       0,       0]
-[ 0, 0, 0,                                   0,                                   1,                                   0,                                     0,                                     0,                                     0,                                     0,       0,       0,       0]
-[ 0, 0, 0,                                   0,                                   0,                                   1,                                     0,                                     0,                                     0,                                     0,       0,       0,       0]
-[ 0, 0, 0,                                   0,                                   0,                                   0,                                     1,                                  wz/2,                                 -wy/2,                                  wx/2,  qw_t/2, -qz_t/2,  qy_t/2]
-[ 0, 0, 0,                                   0,                                   0,                                   0,                                 -wz/2,                                     1,                                  wx/2,                                  wy/2,  qz_t/2,  qw_t/2, -qx_t/2]
-[ 0, 0, 0,                                   0,                                   0,                                   0,                                  wy/2,                                 -wx/2,                                     1,                                  wz/2, -qy_t/2,  qx_t/2,  qw_t/2]
-[ 0, 0, 0,                                   0,                                   0,                                   0,                                 -wx/2,                                 -wy/2,                                 -wz/2,                                     1, -qx_t/2, -qy_t/2, -qz_t/2]
-[ 0, 0, 0,                                   0,                                   0,                                   0,                                     0,                                     0,                                     0,                                     0,       1,       0,       0]
-[ 0, 0, 0,                                   0,                                   0,                                   0,                                     0,                                     0,                                     0,                                     0,       0,       1,       0]
+
+[ 1, 0, 0, (t_s^2*(2*qw^2 + 2*qx^2 - 1))/2,   (t_s^2*(2*qw*qz + 2*qx*qy))/2,  -(t_s^2*(2*qw*qy - 2*qx*qz))/2, 2*ax*qx*t_s^2 + ay*qy*t_s^2 + az*qz*t_s^2,                 ay*qx*t_s^2 - az*qw*t_s^2,                 ay*qw*t_s^2 + az*qx*t_s^2, 2*ax*qw*t_s^2 + ay*qz*t_s^2 - az*qy*t_s^2,     0,     0,     0]
+[ 0, 1, 0,  -(t_s^2*(2*qw*qz - 2*qx*qy))/2, (t_s^2*(2*qw^2 + 2*qy^2 - 1))/2,   (t_s^2*(2*qw*qx + 2*qy*qz))/2,                 ax*qy*t_s^2 + az*qw*t_s^2, ax*qx*t_s^2 + 2*ay*qy*t_s^2 + az*qz*t_s^2,                 az*qy*t_s^2 - ax*qw*t_s^2, 2*ay*qw*t_s^2 - ax*qz*t_s^2 + az*qx*t_s^2,     0,     0,     0]
+[ 0, 0, 1,   (t_s^2*(2*qw*qy + 2*qx*qz))/2,  -(t_s^2*(2*qw*qx - 2*qy*qz))/2, (t_s^2*(2*qw^2 + 2*qz^2 - 1))/2,                 ax*qz*t_s^2 - ay*qw*t_s^2,                 ax*qw*t_s^2 + ay*qz*t_s^2, ax*qx*t_s^2 + ay*qy*t_s^2 + 2*az*qz*t_s^2, ax*qy*t_s^2 - ay*qx*t_s^2 + 2*az*qw*t_s^2,     0,     0,     0]
+[ 0, 0, 0,                               1,                               0,                               0,                                         0,                                         0,                                         0,                                         0,     0,     0,     0]
+[ 0, 0, 0,                               0,                               1,                               0,                                         0,                                         0,                                         0,                                         0,     0,     0,     0]
+[ 0, 0, 0,                               0,                               0,                               1,                                         0,                                         0,                                         0,                                         0,     0,     0,     0]
+[ 0, 0, 0,                               0,                               0,                               0,                                         1,                                      wz/2,                                     -wy/2,                                      wx/2,  qw/2, -qz/2,  qy/2]
+[ 0, 0, 0,                               0,                               0,                               0,                                     -wz/2,                                         1,                                      wx/2,                                      wy/2,  qz/2,  qw/2, -qx/2]
+[ 0, 0, 0,                               0,                               0,                               0,                                      wy/2,                                     -wx/2,                                         1,                                      wz/2, -qy/2,  qx/2,  qw/2]
+[ 0, 0, 0,                               0,                               0,                               0,                                     -wx/2,                                     -wy/2,                                     -wz/2,                                         1, -qx/2, -qy/2, -qz/2]
+[ 0, 0, 0,                               0,                               0,                               0,                                         0,                                         0,                                         0,                                         0,     1,     0,     0]
+[ 0, 0, 0,                               0,                               0,                               0,                                         0,                                         0,                                         0,                                         0,     0,     1,     0]
+[ 0, 0, 0,                               0,                               0,                               0,                                         0,                                         0,                                         0,                                         0,     0,     0,     1]
+ 
+
+
+
+
+
+
 
 
 H = [diff(h, px), diff(h, py), diff(h, pz), ...
     diff(h, ax), diff(h, ay), diff(h, az), ...
-    diff(h, qx_t), diff(h, qy_t), ...
-    diff(h, qz_t), diff(h, qw_t), ...
+    diff(h, qx), diff(h, qy), ...
+    diff(h, qz), diff(h, qw), ...
     diff(h, wx), diff(h, wy), diff(h, wz)
     ]
 
