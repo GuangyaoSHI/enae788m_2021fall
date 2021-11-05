@@ -7,7 +7,7 @@ syms qx_t qy_t qz_t qw_t real
 %time step
 
 %compute the rotation quaternion from q_0 to q_t
-%q_t * q_0^-1
+%q_t * q_0**-1
 S_q0 = [0, -qz_0, qy_0; qz_0, 0, -qx_0; -qy_0, qx_0, 0]; 
 q = [-[qx_0;qy_0;qz_0], qw_0*eye(3)-S_q0; 
     qw_0, [qx_0;qy_0;qz_0]'
@@ -15,9 +15,9 @@ q = [-[qx_0;qy_0;qz_0], qw_0*eye(3)-S_q0;
 
 
 %compute rotation matix from q_0 to q_t
-R_q = [2*q(4)^2+2*q(1)^2-1,     2*q(1)*q(2)-2*q(4)*q(3),   2*q(1)*q(3)+2*q(4)*q(2);
-       2*q(1)*q(2)+2*q(4)*q(3), 2*q(4)^2+2*q(2)^2-1,       2*q(2)*q(3)-2*q(4)*q(1);
-       2*q(1)*q(3)-2*q(4)*q(2), 2*q(2)*q(3)+2*q(4)*q(1),   2*q(4)^2+2*q(3)^2-1
+R_q = [2*q(4)**2+2*q(1)**2-1,     2*q(1)*q(2)-2*q(4)*q(3),   2*q(1)*q(3)+2*q(4)*q(2);
+       2*q(1)*q(2)+2*q(4)*q(3), 2*q(4)**2+2*q(2)**2-1,       2*q(2)*q(3)-2*q(4)*q(1);
+       2*q(1)*q(3)-2*q(4)*q(2), 2*q(2)*q(3)+2*q(4)*q(1),   2*q(4)**2+2*q(3)**2-1
        ]
    
  
@@ -55,7 +55,7 @@ syms wx wy wz real
 %angular noise input 
 syms vx vy vz real
 
-X_next = [[px, py, pz]'+1/2*t_s^2*R_q'*([ax, ay, az]'+[wax, way, waz]');
+X_next = [[px, py, pz]'+1/2*t_s**2*R_q'*([ax, ay, az]'+[wax, way, waz]');
            [qx_t, qy_t, qz_t, qw_t]'+1/2*Q_qt*([wx, wy, wz]'+[vx, vy, vz]')
 ]
 
