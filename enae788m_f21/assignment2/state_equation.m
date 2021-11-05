@@ -67,21 +67,21 @@ syms vx vy vz real
 
 
 
-%state = [p, a, q, w]
+%state = [p, q]
 f = [[px, py, pz]'+1/2*t_s^2*R_q'*([ax, ay, az]'); ...
-     [ax, ay, az]'; ...
      [qx, qy, qz, qw]'+1/2*Q_qt*([wx, wy, wz]'); ...
-     [wx, wy, wz]'
 ]
-
 
 
 %initial meg vector in the local world frame
 syms mx_0 my_0 mz_0 real
-
+syms g real
+ 
 m0 = [mx_0, my_0, mz_0];
+% gravity vector
+gv = [0, 0, -g];
 %observation
-h = [a'; w'; a'; w'; a'; w'; R_q*m0']
+h = [R_q*gv'; R_q*gv'; R_q*gv'; R_q*m0']
 
 % syms x y z
 % f = [2*x+3*y+z, 5*x+10*y+3*z]'
@@ -90,41 +90,41 @@ h = [a'; w'; a'; w'; a'; w'; R_q*m0']
 
 %diff with respect to states
 F = [diff(f, px), diff(f, py), diff(f, pz), ...
-    diff(f, ax), diff(f, ay), diff(f, az), ...
     diff(f, qx), diff(f, qy), ...
-    diff(f, qz), diff(f, qw), ...
-    diff(f, wx), diff(f, wy), diff(f, wz)
+    diff(f, qz), diff(f, qw)
     ]
 
 
 
 H = [diff(h, px), diff(h, py), diff(h, pz), ...
-    diff(h, ax), diff(h, ay), diff(h, az), ...
     diff(h, qx), diff(h, qy), ...
-    diff(h, qz), diff(h, qw), ...
-    diff(h, wx), diff(h, wy), diff(h, wz)
+    diff(h, qz), diff(h, qw)
     ]
 
 
 
-[ 0, 0, 0, 1, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 1, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 0, 1,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 1, 0, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 1, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 1]
-[ 0, 0, 0, 1, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 1, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 0, 1,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 1, 0, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 1, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 1]
-[ 0, 0, 0, 1, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 1, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 0, 1,                                 0,                                 0,                                 0,                                 0, 0, 0, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 1, 0, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 1, 0]
-[ 0, 0, 0, 0, 0, 0,                                 0,                                 0,                                 0,                                 0, 0, 0, 1]
-[ 0, 0, 0, 0, 0, 0, 4*mx_0*qx + 2*my_0*qy + 2*mz_0*qz,             2*my_0*qx + 2*mz_0*qw,             2*mz_0*qx - 2*my_0*qw, 4*mx_0*qw - 2*my_0*qz + 2*mz_0*qy, 0, 0, 0]
-[ 0, 0, 0, 0, 0, 0,             2*mx_0*qy - 2*mz_0*qw, 2*mx_0*qx + 4*my_0*qy + 2*mz_0*qz,             2*mx_0*qw + 2*mz_0*qy, 4*my_0*qw + 2*mx_0*qz - 2*mz_0*qx, 0, 0, 0]
-[ 0, 0, 0, 0, 0, 0,             2*my_0*qw + 2*mx_0*qz,             2*my_0*qz - 2*mx_0*qw, 2*mx_0*qx + 2*my_0*qy + 4*mz_0*qz, 2*my_0*qx - 2*mx_0*qy + 4*mz_0*qw, 0, 0, 0]
+F =
+ 
+[ 1, 0, 0, 2*ax*qx*t_s^2 + ay*qy*t_s^2 + az*qz*t_s^2,                 ay*qx*t_s^2 - az*qw*t_s^2,                 ay*qw*t_s^2 + az*qx*t_s^2, 2*ax*qw*t_s^2 + ay*qz*t_s^2 - az*qy*t_s^2]
+[ 0, 1, 0,                 ax*qy*t_s^2 + az*qw*t_s^2, ax*qx*t_s^2 + 2*ay*qy*t_s^2 + az*qz*t_s^2,                 az*qy*t_s^2 - ax*qw*t_s^2, 2*ay*qw*t_s^2 - ax*qz*t_s^2 + az*qx*t_s^2]
+[ 0, 0, 1,                 ax*qz*t_s^2 - ay*qw*t_s^2,                 ax*qw*t_s^2 + ay*qz*t_s^2, ax*qx*t_s^2 + ay*qy*t_s^2 + 2*az*qz*t_s^2, ax*qy*t_s^2 - ay*qx*t_s^2 + 2*az*qw*t_s^2]
+[ 0, 0, 0,                                         1,                                      wz/2,                                     -wy/2,                                      wx/2]
+[ 0, 0, 0,                                     -wz/2,                                         1,                                      wx/2,                                      wy/2]
+[ 0, 0, 0,                                      wy/2,                                     -wx/2,                                         1,                                      wz/2]
+[ 0, 0, 0,                                     -wx/2,                                     -wy/2,                                     -wz/2,                                         1]
+
+H =
+ 
+[ 0, 0, 0,                           -2*g*qz,                           -2*g*qw,                           -2*g*qx,                           -2*g*qy]
+[ 0, 0, 0,                            2*g*qw,                           -2*g*qz,                           -2*g*qy,                            2*g*qx]
+[ 0, 0, 0,                                 0,                                 0,                           -4*g*qz,                           -4*g*qw]
+[ 0, 0, 0,                           -2*g*qz,                           -2*g*qw,                           -2*g*qx,                           -2*g*qy]
+[ 0, 0, 0,                            2*g*qw,                           -2*g*qz,                           -2*g*qy,                            2*g*qx]
+[ 0, 0, 0,                                 0,                                 0,                           -4*g*qz,                           -4*g*qw]
+[ 0, 0, 0,                           -2*g*qz,                           -2*g*qw,                           -2*g*qx,                           -2*g*qy]
+[ 0, 0, 0,                            2*g*qw,                           -2*g*qz,                           -2*g*qy,                            2*g*qx]
+[ 0, 0, 0,                                 0,                                 0,                           -4*g*qz,                           -4*g*qw]
+[ 0, 0, 0, 4*mx_0*qx + 2*my_0*qy + 2*mz_0*qz,             2*my_0*qx + 2*mz_0*qw,             2*mz_0*qx - 2*my_0*qw, 4*mx_0*qw - 2*my_0*qz + 2*mz_0*qy]
+[ 0, 0, 0,             2*mx_0*qy - 2*mz_0*qw, 2*mx_0*qx + 4*my_0*qy + 2*mz_0*qz,             2*mx_0*qw + 2*mz_0*qy, 4*my_0*qw + 2*mx_0*qz - 2*mz_0*qx]
+[ 0, 0, 0,             2*my_0*qw + 2*mx_0*qz,             2*my_0*qz - 2*mx_0*qw, 2*mx_0*qx + 2*my_0*qy + 4*mz_0*qz, 2*my_0*qx - 2*mx_0*qy + 4*mz_0*qw]
+
