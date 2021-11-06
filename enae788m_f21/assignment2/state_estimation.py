@@ -13,12 +13,12 @@ import copy
 # http://wiki.ros.org/tf2/Tutorials/Quaternions
 
 
-bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.bag')
-# bag_orientation = rosbag.Bag('/home/guangyao/Downloads/20211012_orientationctrl_test.bag')
+# bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.bag')
+bag_orientation = rosbag.Bag('/home/guangyao/Downloads/20211012_orientationctrl_test.bag')
 # bag_handhold = rosbag.Bag('/home/guangyao/Downloads/20211012_handheld.bag')
 
 # read data
-bag_info = read_bag(bag_position)
+bag_info = read_bag(bag_orientation)
 # plot vicon and on-board estimator
 plot_ground_truth(bag_info)
 
@@ -27,7 +27,6 @@ plot_ground_truth(bag_info)
 # {'T': T, 'q': q, 'q_cov': q_cov, 'w': w, 'w_cov': w_cov, 'a': a, 'a_cov': a_cov, 'm': m, 'm_cov': m_cov}
 aligned_info = alignment(bag_info)
 
-aligned_IMU = align_imu(bag_info)
 # horizon
 T = aligned_info['T']
 H = len(T)
@@ -55,6 +54,7 @@ X_p = copy.deepcopy(X)
 for k in range(1, H):
     # predicted state estimation
     x_p = pred_state(k, T, X, aligned_info)
+    print 'predict x_p: {}'.format(x_p)
     X_p[:, k] = x_p
     # predicted covariance estimate
     P_k_1 = pred_covariance(k, T, X, P, aligned_info)
@@ -66,6 +66,7 @@ for k in range(1, H):
     H_k = KH[1]
     # update state estimate
     x = x_p + K_k.dot(y_k)
+    print 'estimate x: {}'.format(x)
     X[:, k] = x
     # update covariance estimate
     P_k = np.matmul((np.eye(7)-np.matmul(K_k, H_k)), P_k_1)
