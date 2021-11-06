@@ -12,3 +12,7 @@ CF_px4_vicon.pdf is the result for complimentary filter, onboard estimator and t
 state_estimation.py is the main script for EKF
 
 complimentary_filter is the main script for complimentary filter
+
+#math
+
+Formulas are documented in ENAE788M_assignment2.pdf
