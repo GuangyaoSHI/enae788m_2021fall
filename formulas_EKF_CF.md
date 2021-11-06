@@ -8,6 +8,8 @@ Observation vector $z=[a_1, a_2, a_3, m]$. $a_1$ denotes the acceleration readin
 
 
 
+$\alpha$
+
 
 
 
