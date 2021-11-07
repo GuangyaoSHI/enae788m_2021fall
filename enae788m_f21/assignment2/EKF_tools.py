@@ -129,6 +129,55 @@ def alignment(bag_info):
     return {'T': T, 'q': q, 'q_cov': q_cov, 'w': w, 'w_cov': w_cov, 'a': a, 'a_cov': a_cov, 'm': m, 'm_cov': m_cov}
 
 
+def alignment_interp(bag_info):
+    T_px4 = np.array(bag_info['T']['/mavros/imu/data_raw'])
+    T_imu0 = np.array(bag_info['T']['/imu0'])
+    T_imu1 = np.array(bag_info['T']['/imu1'])
+    T_mag = np.array(bag_info['T']['/mavros/imu/mag'])
+    # find the starting time
+    t_0 = min(T_px4[0], T_imu0[0], T_imu1[0], T_mag[0])
+    T_px4 -= t_0
+    T_imu0 -= t_0
+    T_imu1 -= t_0
+    T_mag -= t_0
+    TT = {'/mavros/imu/data_raw':T_px4, '/imu0':T_imu0, '/imu1':T_imu1, '/mavros/imu/mag':T_mag}
+    # use the time stamp of imu0
+    T = T_imu0
+
+
+
+    # angular velocity
+    w = {'/mavros/imu/data_raw': [], '/imu0': [], '/imu1': []}
+    # angular velocity covariance
+    w_cov = {'/mavros/imu/data_raw': [], '/imu0': [], '/imu1': []}
+    # linear acceleration
+    a = {'/mavros/imu/data_raw': [], '/imu0': [], '/imu1': []}
+    # linear acceleration covariance
+    a_cov = {'/mavros/imu/data_raw': [], '/imu0': [], '/imu1': []}
+    # magetic field
+    m = {}
+    # magnetic field covariance
+    m_cov = bag_info['m_cov']
+
+    # time stamps for imus
+    ros_topics = ['/mavros/imu/data_raw', '/imu0', '/imu1']
+    for ros_topic in ros_topics:
+        wx = np.interp(T, TT[ros_topic], [omega[0] for omega in bag_info['w'][ros_topic]])
+        wy = np.interp(T, TT[ros_topic], [omega[1] for omega in bag_info['w'][ros_topic]])
+        wz = np.interp(T, TT[ros_topic], [omega[2] for omega in bag_info['w'][ros_topic]])
+        w[ros_topic] = {'wx': wx, 'wy': wy, 'wz': wz}
+        ax = np.interp(T, TT[ros_topic], [acc[0] for acc in bag_info['a'][ros_topic]])
+        ay = np.interp(T, TT[ros_topic], [acc[1] for acc in bag_info['a'][ros_topic]])
+        az = np.interp(T, TT[ros_topic], [acc[2] for acc in bag_info['a'][ros_topic]])
+        a[ros_topic] = {'ax':ax, 'ay':ay, 'az':az}
+
+    mx = np.interp(T, TT['/mavros/imu/mag'], [mag[0] for mag in bag_info['m']])
+    my = np.interp(T, TT['/mavros/imu/mag'], [mag[1] for mag in bag_info['m']])
+    mz = np.interp(T, TT['/mavros/imu/mag'], [mag[2] for mag in bag_info['m']])
+    m = {'mx': mx, 'my': my, 'mz': mz}
+
+    return {'T': T, 'w': w, 'a': a, 'm': m }
+
 def pred_state(k, T, X, aligned_info):
     # time intervals
     t = T[k]-T[k-1]
@@ -524,7 +573,7 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
     T_vicon = np.array(T_vicon)
     T_CF = np.array(T)
     # align time
-    t_0 = min(T_estimator[0], T_vicon[0], T_CF[0])
+    t_0 = min(T_estimator[0], T_vicon[0])
     fig, axs = plt.subplots(3, 1)
 
 
@@ -553,21 +602,21 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
     #roll
     axs[0].plot(T_estimator-t_0, roll_est, label='estimator')
     axs[0].plot(T_vicon-t_0, roll_vi, label='vicon')
-    axs[0].plot(T_CF-t_0, roll, label='CF')
+    axs[0].plot(T_CF, roll, label='CF')
     axs[0].set_ylabel('roll')
     axs[0].legend()
 
     #pitch
     axs[1].plot(T_estimator-t_0, pitch_est, label='estimator')
     axs[1].plot(T_vicon-t_0, pitch_vi, label='vicon')
-    axs[1].plot(T_CF - t_0, pitch, label='CF')
+    axs[1].plot(T_CF, pitch, label='CF')
     axs[1].set_ylabel('pitch')
     axs[1].legend()
 
     #yaw
     axs[2].plot(T_estimator-t_0, yaw_est, label='estimator')
     axs[2].plot(T_vicon-t_0, yaw_vi, label='vicon')
-    axs[2].plot(T_CF - t_0, yaw, label='CF')
+    axs[2].plot(T_CF, yaw, label='CF')
     axs[2].set_ylabel('yaw')
     axs[2].legend()
 
