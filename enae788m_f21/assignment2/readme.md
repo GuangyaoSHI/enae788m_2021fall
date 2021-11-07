@@ -16,3 +16,9 @@ complimentary_filter is the main script for complimentary filter
 #math
 
 Formulas are documented in ENAE788M_assignment2.pdf
+
+# time alignment
+In EKF, since we want to use the covariance matrix of a and w, we use the magnetic sensor as the 
+reference and enforce alignment on IMU signal by selecting cloest sample in time
+
+In complimentary filter, we use imu data as reference and use interpolation for alignment
