@@ -623,4 +623,89 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
 
     fig.tight_layout()
     plt.show()
-    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_vicon.pdf', pad_inches=0)
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_vicon_RPY.pdf', pad_inches=0)
+
+
+class quaternion:
+    def __init__(self, q0, qx, qy, qz):
+        self.q0 = q0
+        self.qx = qx
+        self.qy = qy
+        self.qz = qz
+    def inverse(self):
+        self.qx *= -1
+        self.qy *= -1
+        self.qz *= -1
+    def product(self, q):
+        # matrix
+        q_matrix = np.array([[q.q0, -q.qx, -q.qy, -q.qz],
+                             [q.qx, q.q0, -q.qz, q.qy],
+                             [q.qy, q.qz, q.q0, -q.qx],
+                             [q.qz, -q.qy, q.qx, q.q0]])
+        return q_matrix.dot(np.array([self.q0, self.qx, self.qy, self.qz]))
+
+    def rotate(self, v):
+        R_q = np.array([[2 * self.q0 ** 2 + 2 * self.qx ** 2 - 1, 2 * self.qx * self.qy - 2 * self.q0 * self.qz, 2 * self.qx * self.qz + 2 * self.q0 * self.qy],
+                        [2 * self.qx * self.qy + 2 * self.q0 * self.qz, 2 * self.q0 ** 2 + 2 * self.qy ** 2 - 1, 2 * self.qy * self.qz - 2 * self.q0 * self.qx],
+                        [2 * self.qx * self.qz - 2 * self.q0 * self.qy, 2 * self.qy * self.qz + 2 * self.q0 * self.qx, 2 * self.q0 ** 2 + 2 * self.qz ** 2 - 1]])
+        return R_q.dot(v)
+
+    def to_numpy(self):
+        return np.array([self.q0, self.qx, self.qy, self.qz])
+
+
+
+def plot_CF_quaternion(bag_info, T, q):
+    T_estimator = bag_info['T']['/mavros/local_position/pose']
+    T_estimator = np.array(T_estimator)
+    T_vicon = bag_info['T']['/vicon/m500_joec/m500_joec']
+    T_vicon = np.array(T_vicon)
+    T_CF = np.array(T)
+    # align time
+    t_0 = min(T_estimator[0], T_vicon[0])
+    fig, axs = plt.subplots(4, 1)
+
+    qX_estimator = [pose['orientation'][0] for pose in bag_info['pose']]
+    qY_estimator = [pose['orientation'][1] for pose in bag_info['pose']]
+    qZ_estimator = [pose['orientation'][2] for pose in bag_info['pose']]
+    qW_estimator = [pose['orientation'][3] for pose in bag_info['pose']]
+
+
+    qX_vicon = [pose['rotation'][0] for pose in bag_info['vicon']]
+    qY_vicon = [pose['rotation'][1] for pose in bag_info['vicon']]
+    qZ_vicon = [pose['rotation'][2] for pose in bag_info['vicon']]
+    qW_vicon = [pose['rotation'][3] for pose in bag_info['vicon']]
+
+
+    #qx
+    axs[0].plot(T_estimator-t_0, qX_estimator, label='estimator')
+    axs[0].plot(T_vicon-t_0, qX_vicon, label='vicon')
+    axs[0].plot(T_CF, q[1, :], label='CF')
+    axs[0].set_ylabel('qx')
+    axs[0].legend()
+
+    #qy
+    axs[1].plot(T_estimator-t_0, qY_estimator, label='estimator')
+    axs[1].plot(T_vicon-t_0, qY_vicon, label='vicon')
+    axs[1].plot(T_CF, q[2, :], label='CF')
+    axs[1].set_ylabel('qy')
+    axs[1].legend()
+
+    #qz
+    axs[2].plot(T_estimator-t_0, qZ_estimator, label='estimator')
+    axs[2].plot(T_vicon-t_0, qZ_vicon, label='vicon')
+    axs[2].plot(T_CF, q[3, :], label='CF')
+    axs[2].set_ylabel('qz')
+    axs[2].legend()
+
+    # qw
+    axs[3].plot(T_estimator - t_0, qW_estimator, label='estimator')
+    axs[3].plot(T_vicon - t_0, qW_vicon, label='vicon')
+    axs[3].plot(T_CF, q[0, :], label='CF')
+    axs[3].set_ylabel('qw')
+    axs[3].set_xlabel('time')
+    axs[3].legend()
+
+    fig.tight_layout()
+    plt.show()
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_quaternion_handhold.pdf', pad_inches=0)
