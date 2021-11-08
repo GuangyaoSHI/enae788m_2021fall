@@ -623,7 +623,7 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
 
     fig.tight_layout()
     plt.show()
-    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_vicon_RPY.pdf', pad_inches=0)
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_vicon_RPY_handhold.pdf', pad_inches=0)
 
 
 class quaternion:

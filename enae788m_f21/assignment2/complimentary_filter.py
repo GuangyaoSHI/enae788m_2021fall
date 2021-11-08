@@ -13,12 +13,12 @@ import tf
 # http://wiki.ros.org/tf2/Tutorials/Quaternions
 
 
-bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.bag')
+# bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.bag')
 # bag_orientation = rosbag.Bag('/home/guangyao/Downloads/20211012_orientationctrl_test.bag')
-# bag_handhold = rosbag.Bag('/home/guangyao/Downloads/20211012_handheld.bag')
+bag_handhold = rosbag.Bag('/home/guangyao/Downloads/20211012_handheld.bag')
 
 # read data
-bag_info = read_bag(bag_position)
+bag_info = read_bag(bag_handhold)
 
 aligned_IMU = alignment_interp(bag_info)
 
