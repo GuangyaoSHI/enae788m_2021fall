@@ -24,18 +24,18 @@ aligned_IMU = alignment_interp(bag_info)
 
 
 # acceleration
-acc_x = 1/3*(aligned_IMU['a']['/mavros/imu/data_raw']['ax'] + aligned_IMU['a']['/imu0']['ax']+aligned_IMU['a']['/imu1']['ax'])
+acc_x = aligned_IMU['a']['/mavros/imu/data_raw']['ax']
 h1 = acc_x
-acc_y = 1/3*(aligned_IMU['a']['/mavros/imu/data_raw']['ay'] + aligned_IMU['a']['/imu0']['ay']+aligned_IMU['a']['/imu1']['ay'])
+acc_y = aligned_IMU['a']['/mavros/imu/data_raw']['ay']
 h2 = acc_y
-acc_z = 1/3*(aligned_IMU['a']['/mavros/imu/data_raw']['az'] + + aligned_IMU['a']['/imu0']['az']+aligned_IMU['a']['/imu1']['az'])
+acc_z = aligned_IMU['a']['/mavros/imu/data_raw']['az']
 h3 = acc_z
 # angular velocity
-omega_x = 1/3*(aligned_IMU['w']['/mavros/imu/data_raw']['wx']+aligned_IMU['w']['/imu0']['wx']+aligned_IMU['w']['/imu1']['wx'])
+omega_x = aligned_IMU['w']['/mavros/imu/data_raw']['wx']
 
-omega_y = 1/3*(aligned_IMU['w']['/mavros/imu/data_raw']['wy']+aligned_IMU['w']['/imu0']['wy']+aligned_IMU['w']['/imu1']['wy'])
+omega_y = aligned_IMU['w']['/mavros/imu/data_raw']['wy']
 
-omega_z = 1/3*(aligned_IMU['w']['/mavros/imu/data_raw']['wz']+aligned_IMU['w']['/imu0']['wz']+aligned_IMU['w']['/imu1']['wz'])
+omega_z = aligned_IMU['w']['/mavros/imu/data_raw']['wz']
 
 # magetic field
 mag = aligned_IMU['m']
