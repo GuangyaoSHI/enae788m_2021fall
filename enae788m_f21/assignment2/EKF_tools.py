@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tf
 from scipy.linalg import block_diag
+import scipy
 
 # A = np.array([1,2,3,5])
 # A = np.reshape(A, (2,2))
@@ -131,36 +132,31 @@ def alignment(bag_info):
 
 def alignment_interp(bag_info):
     T_px4 = np.array(bag_info['T']['/mavros/imu/data_raw'])
-    T_imu0 = np.array(bag_info['T']['/imu0'])
-    T_imu1 = np.array(bag_info['T']['/imu1'])
     T_mag = np.array(bag_info['T']['/mavros/imu/mag'])
     # find the starting time
-    t_0 = min(T_px4[0], T_imu0[0], T_imu1[0], T_mag[0])
+    t_0 = min(T_px4[0], T_mag[0])
     T_px4 -= t_0
-    T_imu0 -= t_0
-    T_imu1 -= t_0
+
     T_mag -= t_0
-    TT = {'/mavros/imu/data_raw':T_px4, '/imu0':T_imu0, '/imu1':T_imu1, '/mavros/imu/mag':T_mag}
+    TT = {'/mavros/imu/data_raw':T_px4, '/mavros/imu/mag':T_mag}
     # use the time stamp of imu0
-    T = T_imu0
-
-
+    T = T_px4
 
     # angular velocity
-    w = {'/mavros/imu/data_raw': [], '/imu0': [], '/imu1': []}
+    w = {'/mavros/imu/data_raw': []}
     # angular velocity covariance
-    w_cov = {'/mavros/imu/data_raw': [], '/imu0': [], '/imu1': []}
+    w_cov = {'/mavros/imu/data_raw': []}
     # linear acceleration
-    a = {'/mavros/imu/data_raw': [], '/imu0': [], '/imu1': []}
+    a = {'/mavros/imu/data_raw': []}
     # linear acceleration covariance
-    a_cov = {'/mavros/imu/data_raw': [], '/imu0': [], '/imu1': []}
+    a_cov = {'/mavros/imu/data_raw': []}
     # magetic field
     m = {}
     # magnetic field covariance
     m_cov = bag_info['m_cov']
 
     # time stamps for imus
-    ros_topics = ['/mavros/imu/data_raw', '/imu0', '/imu1']
+    ros_topics = ['/mavros/imu/data_raw']
     for ros_topic in ros_topics:
         wx = np.interp(T, TT[ros_topic], [omega[0] for omega in bag_info['w'][ros_topic]])
         wy = np.interp(T, TT[ros_topic], [omega[1] for omega in bag_info['w'][ros_topic]])
@@ -171,12 +167,45 @@ def alignment_interp(bag_info):
         az = np.interp(T, TT[ros_topic], [acc[2] for acc in bag_info['a'][ros_topic]])
         a[ros_topic] = {'ax':ax, 'ay':ay, 'az':az}
 
-    mx = np.interp(T, TT['/mavros/imu/mag'], [mag[0] for mag in bag_info['m']])
-    my = np.interp(T, TT['/mavros/imu/mag'], [mag[1] for mag in bag_info['m']])
-    mz = np.interp(T, TT['/mavros/imu/mag'], [mag[2] for mag in bag_info['m']])
+    mx_old = [mag[0] for mag in bag_info['m']]
+    my_old = [mag[1] for mag in bag_info['m']]
+    mz_old = [mag[2] for mag in bag_info['m']]
+    m_old = {'mx':mx_old, 'my':my_old, 'mz':mz_old}
+    mx = np.interp(T, TT['/mavros/imu/mag'], mx_old)
+    my = np.interp(T, TT['/mavros/imu/mag'], my_old)
+    mz = np.interp(T, TT['/mavros/imu/mag'], mz_old)
     m = {'mx': mx, 'my': my, 'mz': mz}
-
+    # plot_interp_mag(T_mag, m_old, T, m)
     return {'T': T, 'w': w, 'a': a, 'm': m }
+
+def plot_interp_mag(T_mag_old, m_old, T_new, m_new):
+    fig, axs = plt.subplots(3,1)
+    t0 = min(T_mag_old[0], T_new[0])
+    # mx
+    axs[0].plot(T_mag_old-t0, m_old['mx'], label='mx_old')
+    axs[0].plot(T_new-t0, m_new['mx'], label='mx_new')
+    axs[0].set_ylabel('mx')
+    axs[0].legend()
+
+    # mx
+    axs[1].plot(T_mag_old-t0, m_old['my'], label='mx_old')
+    axs[1].plot(T_new-t0, m_new['my'], label='mx_new')
+    axs[1].set_ylabel('my')
+    axs[1].legend()
+
+    # mx
+    axs[2].plot(T_mag_old-t0, m_old['mz'], label='mx_old')
+    axs[2].plot(T_new-t0, m_new['mz'], label='mx_new')
+    axs[2].set_ylabel('mz')
+    axs[2].set_xlabel('time')
+    axs[2].legend()
+
+
+    fig.tight_layout()
+    plt.show()
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/interpolation_mag.pdf', pad_inches=0)
+
+
 
 def pred_state(k, T, X, aligned_info):
     # time intervals
@@ -351,7 +380,7 @@ def plot_ground_truth(bag_info):
     T_vicon = np.array(T_vicon)
     # align time
     t_0 = min(T_estimator[0], T_vicon[0])
-    fig, axs = plt.subplots(7, 1)
+
 
     X_estimator = [pose['position'][0] for pose in bag_info['pose']]
     Y_estimator = [pose['position'][1] for pose in bag_info['pose']]
@@ -372,6 +401,7 @@ def plot_ground_truth(bag_info):
     qW_vicon = [pose['rotation'][3] for pose in bag_info['vicon']]
 
 
+    fig, axs = plt.subplots(3, 1)
     #x
     axs[0].plot(T_estimator-t_0, X_estimator, label='estimator')
     axs[0].plot(T_vicon-t_0, X_vicon, label='vicon')
@@ -390,34 +420,39 @@ def plot_ground_truth(bag_info):
     axs[2].set_ylabel('z')
     axs[2].legend()
 
+    fig.tight_layout()
+    plt.show()
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/px4_vicon_position.pdf', pad_inches=0)
+
+    fig, axs = plt.subplots(4, 1)
     #qx
-    axs[3].plot(T_estimator-t_0, qX_estimator, label='estimator')
-    axs[3].plot(T_vicon-t_0, qX_vicon, label='vicon')
-    axs[3].set_ylabel('qx')
-    axs[3].legend()
+    axs[0].plot(T_estimator-t_0, qX_estimator, label='estimator')
+    axs[0].plot(T_vicon-t_0, qX_vicon, label='vicon')
+    axs[0].set_ylabel('qx')
+    axs[0].legend()
 
     #qy
-    axs[4].plot(T_estimator-t_0, qY_estimator, label='estimator')
-    axs[4].plot(T_vicon-t_0, qY_vicon, label='vicon')
-    axs[4].set_ylabel('qy')
-    axs[4].legend()
+    axs[1].plot(T_estimator-t_0, qY_estimator, label='estimator')
+    axs[1].plot(T_vicon-t_0, qY_vicon, label='vicon')
+    axs[1].set_ylabel('qy')
+    axs[1].legend()
 
     #qz
-    axs[5].plot(T_estimator-t_0, qZ_estimator, label='estimator')
-    axs[5].plot(T_vicon-t_0, qZ_vicon, label='vicon')
-    axs[5].set_ylabel('qz')
-    axs[5].legend()
+    axs[2].plot(T_estimator-t_0, qZ_estimator, label='estimator')
+    axs[2].plot(T_vicon-t_0, qZ_vicon, label='vicon')
+    axs[2].set_ylabel('qz')
+    axs[2].legend()
 
     # qw
-    axs[6].plot(T_estimator - t_0, qW_estimator, label='estimator')
-    axs[6].plot(T_vicon - t_0, qW_vicon, label='vicon')
-    axs[6].set_ylabel('qw')
-    axs[6].set_xlabel('time')
-    axs[6].legend()
+    axs[3].plot(T_estimator - t_0, qW_estimator, label='estimator')
+    axs[3].plot(T_vicon - t_0, qW_vicon, label='vicon')
+    axs[3].set_ylabel('qw')
+    axs[3].set_xlabel('time')
+    axs[3].legend()
 
     fig.tight_layout()
     plt.show()
-    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/px4_vicon.pdf', pad_inches=0)
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/px4_vicon_quaternion.pdf', pad_inches=0)
 
 
 def plot_EKF_vicon_px4(bag_info, T, X):
@@ -574,7 +609,7 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
     T_CF = np.array(T)
     # align time
     t_0 = min(T_estimator[0], T_vicon[0])
-    fig, axs = plt.subplots(3, 1)
+
 
 
     # angles from the onboard estimator
@@ -599,6 +634,7 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
         pitch_vi.append(angles[1])
         yaw_vi.append(angles[2])
 
+    fig, axs = plt.subplots(2, 1)
     #roll
     axs[0].plot(T_estimator-t_0, roll_est, label='estimator')
     axs[0].plot(T_vicon-t_0, roll_vi, label='vicon')
@@ -614,16 +650,16 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
     axs[1].legend()
 
     #yaw
-    axs[2].plot(T_estimator-t_0, yaw_est, label='estimator')
-    axs[2].plot(T_vicon-t_0, yaw_vi, label='vicon')
-    axs[2].plot(T_CF, yaw, label='CF')
-    axs[2].set_ylabel('yaw')
-    axs[2].legend()
+    # axs[2].plot(T_estimator-t_0, yaw_est, label='estimator')
+    # axs[2].plot(T_vicon-t_0, yaw_vi, label='vicon')
+    # axs[2].plot(T_CF, yaw, label='CF')
+    # axs[2].set_ylabel('yaw')
+    # axs[2].legend()
 
 
     fig.tight_layout()
     plt.show()
-    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_vicon_RPY_handhold.pdf', pad_inches=0)
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_vicon_RPY.pdf', pad_inches=0)
 
 
 class quaternion:
@@ -632,10 +668,12 @@ class quaternion:
         self.qx = qx
         self.qy = qy
         self.qz = qz
+
     def inverse(self):
         self.qx *= -1
         self.qy *= -1
         self.qz *= -1
+
     def product(self, q):
         # matrix
         q_matrix = np.array([[q.q0, -q.qx, -q.qy, -q.qz],
@@ -663,7 +701,7 @@ def plot_CF_quaternion(bag_info, T, q):
     T_CF = np.array(T)
     # align time
     t_0 = min(T_estimator[0], T_vicon[0])
-    fig, axs = plt.subplots(4, 1)
+
 
     qX_estimator = [pose['orientation'][0] for pose in bag_info['pose']]
     qY_estimator = [pose['orientation'][1] for pose in bag_info['pose']]
@@ -676,36 +714,40 @@ def plot_CF_quaternion(bag_info, T, q):
     qZ_vicon = [pose['rotation'][2] for pose in bag_info['vicon']]
     qW_vicon = [pose['rotation'][3] for pose in bag_info['vicon']]
 
-
+    fig, axs = plt.subplots(2, 2, figsize=(12, 12))
     #qx
-    axs[0].plot(T_estimator-t_0, qX_estimator, label='estimator')
-    axs[0].plot(T_vicon-t_0, qX_vicon, label='vicon')
-    axs[0].plot(T_CF, q[1, :], label='CF')
-    axs[0].set_ylabel('qx')
-    axs[0].legend()
+    axs[0, 0].plot(T_estimator-t_0, qX_estimator, label='estimator')
+    axs[0, 0].plot(T_vicon-t_0, qX_vicon, label='vicon')
+    axs[0, 0].plot(T_CF, q[1, :], label='CF')
+    axs[0, 0].set_ylabel('qx')
+    axs[0, 0].legend()
 
     #qy
-    axs[1].plot(T_estimator-t_0, qY_estimator, label='estimator')
-    axs[1].plot(T_vicon-t_0, qY_vicon, label='vicon')
-    axs[1].plot(T_CF, q[2, :], label='CF')
-    axs[1].set_ylabel('qy')
-    axs[1].legend()
+    axs[0, 1].plot(T_estimator-t_0, qY_estimator, label='estimator')
+    axs[0, 1].plot(T_vicon-t_0, qY_vicon, label='vicon')
+    axs[0, 1].plot(T_CF, q[2, :], label='CF')
+    axs[0, 1].set_ylabel('qy')
+    axs[0, 1].legend()
 
     #qz
-    axs[2].plot(T_estimator-t_0, qZ_estimator, label='estimator')
-    axs[2].plot(T_vicon-t_0, qZ_vicon, label='vicon')
-    axs[2].plot(T_CF, q[3, :], label='CF')
-    axs[2].set_ylabel('qz')
-    axs[2].legend()
+    axs[1, 0].plot(T_estimator-t_0, qZ_estimator, label='estimator')
+    axs[1, 0].plot(T_vicon-t_0, qZ_vicon, label='vicon')
+    axs[1, 0].plot(T_CF, q[3, :], label='CF')
+    axs[1, 0].set_ylabel('qz')
+    axs[1, 0].legend()
 
     # qw
-    axs[3].plot(T_estimator - t_0, qW_estimator, label='estimator')
-    axs[3].plot(T_vicon - t_0, qW_vicon, label='vicon')
-    axs[3].plot(T_CF, q[0, :], label='CF')
-    axs[3].set_ylabel('qw')
-    axs[3].set_xlabel('time')
-    axs[3].legend()
+    axs[1, 1].plot(T_estimator - t_0, qW_estimator, label='estimator')
+    axs[1, 1].plot(T_vicon - t_0, qW_vicon, label='vicon')
+    axs[1, 1].plot(T_CF, q[0, :], label='CF')
+    axs[1, 1].set_ylabel('qw')
+    axs[1, 1].set_xlabel('time')
+    axs[1, 1].legend()
 
     fig.tight_layout()
     plt.show()
-    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_quaternion_handhold.pdf', pad_inches=0)
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_quaternion.pdf', pad_inches=0)
+
+
+def save2mat(bag_info):
+    scipy.io.savemat('imu_data', bag_info)

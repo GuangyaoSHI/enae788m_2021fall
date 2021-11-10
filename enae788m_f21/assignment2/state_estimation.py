@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import tf
 from EKF_tools import *
 import copy
-
+import scipy
 
 # refrences
 # http://wiki.ros.org/tf2/Tutorials/Quaternions
@@ -19,6 +19,7 @@ bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.ba
 
 # read data
 bag_info = read_bag(bag_position)
+scipy.io.savemat('sensor_data.mat', bag_info)
 # plot vicon and on-board estimator
 plot_ground_truth(bag_info)
 

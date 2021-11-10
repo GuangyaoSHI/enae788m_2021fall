@@ -13,12 +13,12 @@ import tf
 # http://wiki.ros.org/tf2/Tutorials/Quaternions
 
 
-# bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.bag')
-#bag_orientation = rosbag.Bag('/home/guangyao/Downloads/20211012_orientationctrl_test.bag')
-bag_handhold = rosbag.Bag('/home/guangyao/Downloads/20211012_handheld.bag')
+bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.bag')
+# bag_orientation = rosbag.Bag('/home/guangyao/Downloads/20211012_orientationctrl_test.bag')
+# bag_handhold = rosbag.Bag('/home/guangyao/Downloads/20211012_handheld.bag')
 
 # read data
-bag_info = read_bag(bag_handhold)
+bag_info = read_bag(bag_position)
 
 aligned_IMU = alignment_interp(bag_info)
 
@@ -59,7 +59,7 @@ m = np.array([0, 0, -1])
 n = np.array([b1[0], b2[0], b3[0]])/np.linalg.norm(np.array([b1[0], b2[0], b3[0]]))
 
 # filter gain
-K = 50
+K = 0.1
 for t in range(1, H):
     # delta t
     delta_t = T[t] - T[t-1]
@@ -82,16 +82,16 @@ for t in range(1, H):
     n1 = n[0]
     n2 = n[1]
     n3 = n[2]
-    X = np.array([[                        2*qy,                        2*qz,                        2*q0,                        2*qx],
-                  [-2*qx,                 -2*q0,                        2*qz,                        2*qy],
-                  [4*q0,                           0,                           0,                        4*qz],
+    X = np.array([[                        -2*qy,                        -2*qz,                        -2*q0,                        -2*qx],
+                  [2*qx,                    2*q0,                        -2*qz,                        -2*qy],
+                  [-4*q0,                           0,                           0,                        -4*qz],
                   [4*n1*q0 + 2*n3*qy - 2*n2*qz, 4*n1*qx + 2*n2*qy + 2*n3*qz,           2*n3*q0 + 2*n2*qx,           2*n3*qx - 2*n2*q0],
                   [4*n2*q0 - 2*n3*qx + 2*n1*qz,           2*n1*qy - 2*n3*q0, 2*n1*qx + 4*n2*qy + 2*n3*qz,           2*n1*q0 + 2*n3*qy],
                   [4*n3*q0 + 2*n2*qx - 2*n1*qy,           2*n2*q0 + 2*n1*qz,           2*n2*qz - 2*n1*q0, 2*n1*qx + 2*n2*qy + 4*n3*qz]])
-    XX = np.matmul(np.matmul(X.transpose(), X), X.transpose())
+    XX = np.matmul(np.linalg.inv(np.matmul(X.transpose(), X)), X.transpose())
     delta_q = XX.dot(err)
     dq_err = K*delta_q
-    dq = q_est.product(quaternion(0, omega_x[t-1], omega_y[t-1], omega_z[t-1]))
+    dq = 1/2*q_est.product(quaternion(0, omega_x[t-1], omega_y[t-1], omega_z[t-1]))
     q_t = (dq+dq_err)*delta_t + q[:, t-1]
     q_t = q_t/np.linalg.norm(q_t)
     q[:, t] = q_t

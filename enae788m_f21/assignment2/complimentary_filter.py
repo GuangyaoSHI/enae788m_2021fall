@@ -14,24 +14,24 @@ import tf
 
 
 # bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.bag')
-# bag_orientation = rosbag.Bag('/home/guangyao/Downloads/20211012_orientationctrl_test.bag')
-bag_handhold = rosbag.Bag('/home/guangyao/Downloads/20211012_handheld.bag')
+bag_orientation = rosbag.Bag('/home/guangyao/Downloads/20211012_orientationctrl_test.bag')
+# bag_handhold = rosbag.Bag('/home/guangyao/Downloads/20211012_handheld.bag')
 
 # read data
-bag_info = read_bag(bag_handhold)
+bag_info = read_bag(bag_orientation)
 
 aligned_IMU = alignment_interp(bag_info)
 
 
 # acceleration
-acc_x = 1/3*(aligned_IMU['a']['/mavros/imu/data_raw']['ax'] + aligned_IMU['a']['/imu0']['ax']+aligned_IMU['a']['/imu1']['ax'])
-acc_y = 1/3*(aligned_IMU['a']['/mavros/imu/data_raw']['ay'] + aligned_IMU['a']['/imu0']['ay']+aligned_IMU['a']['/imu1']['ay'])
-acc_z = 1/3*(aligned_IMU['a']['/mavros/imu/data_raw']['az'] + + aligned_IMU['a']['/imu0']['az']+aligned_IMU['a']['/imu1']['az'])
+acc_x = aligned_IMU['a']['/mavros/imu/data_raw']['ax']
+acc_y = aligned_IMU['a']['/mavros/imu/data_raw']['ay']
+acc_z = aligned_IMU['a']['/mavros/imu/data_raw']['az']
 
 # angular velocity
-omega_x = 1/3*(aligned_IMU['w']['/mavros/imu/data_raw']['wx']+aligned_IMU['w']['/imu0']['wx']+aligned_IMU['w']['/imu1']['wx'])
-omega_y = 1/3*(aligned_IMU['w']['/mavros/imu/data_raw']['wy']+aligned_IMU['w']['/imu0']['wy']+aligned_IMU['w']['/imu1']['wy'])
-omega_z = 1/3*(aligned_IMU['w']['/mavros/imu/data_raw']['wz']+aligned_IMU['w']['/imu0']['wz']+aligned_IMU['w']['/imu1']['wz'])
+omega_x = aligned_IMU['w']['/mavros/imu/data_raw']['wx']
+omega_y = aligned_IMU['w']['/mavros/imu/data_raw']['wy']
+omega_z = aligned_IMU['w']['/mavros/imu/data_raw']['wz']
 # magetic field
 m = aligned_IMU['m']
 # estimate phi and theta with complimentary filter
@@ -81,8 +81,8 @@ for k in range(1, H):
     theta_gyro = theta[k - 1] + t * d_theta
     phi[k] = alpha * phi_acc + (1 - alpha) * phi_gyro
     theta[k] = alpha * theta_acc + (1 - alpha) * theta_gyro
-    psi[k] = np.arctan2(float(mz * np.sin(phi[k]) - my * np.cos(phi[k])), float(mx * np.cos(theta[k]) +
+    psi[k] = np.arctan2(-float(mz * np.sin(phi[k]) - my * np.cos(phi[k])), float(mx * np.cos(theta[k]) +
                                                                                 my * np.sin(theta[k]) * np.sin(phi[k]) +
-                                                                                mz * np.sin(theta[k]) * np.cos(phi[k])))
+                                                                                 mz * np.sin(theta[k]) * np.cos(phi[k])))
 
 plot_CF_vicon(bag_info, T, phi, theta, psi)
