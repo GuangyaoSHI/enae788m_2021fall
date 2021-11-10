@@ -1,0 +1,14 @@
+%load data
+data = load('sensor_data.mat')
+%get acceleration data
+a = data.a
+a = cell2struct(struct2cell(a), {'imu', 'imu1', 'imu0'})
+%get angular velocity data
+w = data.w
+w = cell2struct(struct2cell(w), {'imu', 'imu1', 'imu0'})
+%magetic measurement
+m = data.m
+%interpolate m
+T = data.T
+T = cell2struct(struct2cell(T), {'vicon', 'px4_estimator', 'imu', 'mag', 'imu1', 'imu0'})
+m = interp()
