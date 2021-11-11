@@ -116,8 +116,10 @@ hold on
 p2 = plot(t_px4(:), yaw_px4, 'b', 'DisplayName', 'PX4')
 ylabel('Roll \phi')
 xlabel('time')
-legend('EKF', 'PX4')
+lgd = legend('EKF', 'PX4')
+lgd.FontSize = 20;
 title('Estimate roll Naive EKF vs PX4 onboard estimator')
+%saveas(gcf,'EKF_roll.pdf')
 hold off
 
 figure(2)
@@ -130,6 +132,8 @@ hold on
 plot(t_px4(:), theta_px4, 'b', 'DisplayName', 'PX4')
 ylabel('Pitch \theta')
 xlabel('time')
-legend('EKF', 'PX4')
+lgd = legend('EKF', 'PX4')
+lgd.FontSize = 20;
 title('Estimate pitch Naive EKF vs PX4 onboard estimator')
+%saveas(gcf,'EKF_roll.pdf')
 hold off
