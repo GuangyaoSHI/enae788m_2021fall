@@ -634,20 +634,25 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
         pitch_vi.append(angles[1])
         yaw_vi.append(angles[2])
 
-    fig, axs = plt.subplots(2, 1)
+    fig, axs = plt.subplots()
     #roll
-    axs[0].plot(T_estimator-t_0, roll_est, label='estimator')
-    axs[0].plot(T_vicon-t_0, roll_vi, label='vicon')
-    axs[0].plot(T_CF, roll, label='CF')
-    axs[0].set_ylabel('roll')
-    axs[0].legend()
+    axs.plot(T_estimator-t_0, roll_est, label='estimator')
+    #axs.plot(T_vicon-t_0, roll_vi, label='vicon')
+    axs.plot(T_CF, roll, label='CF')
+    axs.set_ylabel('roll')
+    axs.legend()
+    fig.tight_layout()
+    plt.show()
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_Roll.pdf', pad_inches=0)
+
 
     #pitch
-    axs[1].plot(T_estimator-t_0, pitch_est, label='estimator')
-    axs[1].plot(T_vicon-t_0, pitch_vi, label='vicon')
-    axs[1].plot(T_CF, pitch, label='CF')
-    axs[1].set_ylabel('pitch')
-    axs[1].legend()
+    fig, axs = plt.subplots()
+    axs.plot(T_estimator-t_0, pitch_est, label='estimator')
+    # axs.plot(T_vicon-t_0, pitch_vi, label='vicon')
+    axs.plot(T_CF, pitch, label='CF')
+    axs.set_ylabel('pitch')
+    axs.legend()
 
     #yaw
     # axs[2].plot(T_estimator-t_0, yaw_est, label='estimator')
@@ -659,7 +664,7 @@ def plot_CF_vicon(bag_info, T, roll, pitch, yaw):
 
     fig.tight_layout()
     plt.show()
-    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_vicon_RPY.pdf', pad_inches=0)
+    fig.savefig('/home/guangyao/Github/enae788m_2021fall/enae788m_f21/assignment2/CF_px4_Pitch.pdf', pad_inches=0)
 
 
 class quaternion:
