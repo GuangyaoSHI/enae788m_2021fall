@@ -19,7 +19,7 @@ bag_position = rosbag.Bag('/home/guangyao/Downloads/20211012_positionctl_test.ba
 
 # read data
 bag_info = read_bag(bag_position)
-scipy.io.savemat('sensor_data.mat', bag_info)
+scipy.io.savemat('sensor_data.mat', {'T', bag_info['T']['/mavros']})
 # plot vicon and on-board estimator
 plot_ground_truth(bag_info)
 
