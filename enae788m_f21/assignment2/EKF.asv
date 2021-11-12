@@ -5,14 +5,14 @@ syms wx wy wz real
 %state x = [phi, theta]
 d_x = [1, sin(phi)*tan(theta), cos(phi)*tan(theta);
        0, cos(phi), -sin(phi)];
-%f = [phi, theta]'+ Ts*d_x*[wx, wy, wz]'
-f = d_x*[wx, wy, wz]'
+f = [phi, theta]'+ Ts*d_x*[wx, wy, wz]'
+% f = d_x*[wx, wy, wz]'
 F = [diff(f, phi), diff(f, theta)]
 
 %syms g real
 g =  9.8;
-h = (-g)*[-sin(theta), cos(theta)*sin(phi), cos(theta)*cos(phi)]';
-
+%h = (-g)*[-sin(theta), cos(theta)*sin(phi), cos(theta)*cos(phi)]';
+h = (-g)*[cos(phi)*sin(theta)*cos(psi)]
 H = [diff(h, phi), diff(h, theta)]
 
 
@@ -32,7 +32,7 @@ w = cell2struct(struct2cell(w), {'imu', 'imu1', 'imu0'});
 w_cov = data.w_cov;
 w_cov = cell2struct(struct2cell(w_cov), {'imu', 'imu1', 'imu0'})
 
-U = w.imu(:, :);
+U = w.imu0(:, :);
 %magetic measurement
 m = data.m;
 %interpolate m
@@ -63,12 +63,12 @@ end
 %state [phi, theta]
 %assume phi, theta, and psi are approximately equal to zero
 %then w_x = d_phi, w_y = d_theta, w_z = d_psi
-X = zeros(2, length(T.imu));
+X = zeros(2, length(T.imu0));
 P = diag([1e-8, 1e-8]);
 Q = diag([1e-7, 1e-7]);
 
-for k = 2:length(T.imu)
-    Ts = T.imu(k)-T.imu(k-1);
+for k = 2:length(T.imu0)
+    Ts = T.imu0(k)-T.imu0(k-1);
     phi = X(1, k-1);
     theta = X(2, k-1);
     wx = U(k-1, 1);
@@ -107,29 +107,33 @@ end
 t0 = T.px4_estimator;
 t_px4 = t0 - t0(1);
 
-t0 = T.imu;
+t0 = T.imu0;
 t0 = t0(1);
-t = T.imu-t0;
+t = T.imu0-t0;
 f = X(1,:);
 p1 = plot(t(:), f(:), 'r', 'DisplayName', 'EKF')
 hold on 
 p2 = plot(t_px4(:), yaw_px4, 'b', 'DisplayName', 'PX4')
 ylabel('Roll \phi')
 xlabel('time')
-legend('EKF', 'PX4')
+lgd = legend('EKF', 'PX4')
+lgd.FontSize = 20;
 title('Estimate roll Naive EKF vs PX4 onboard estimator')
+%saveas(gcf,'EKF_roll.pdf')
 hold off
 
 figure(2)
-t0 = T.imu;
+t0 = T.imu0;
 t0 = t0(1);
-t = T.imu-t0;
+t = T.imu0-t0;
 f = X(2,:);
-plot(t(:), f(:), 'r', 'DisplayName', 'EKF')
+plot(t(:), -f(:), 'r', 'DisplayName', 'EKF')
 hold on 
 plot(t_px4(:), theta_px4, 'b', 'DisplayName', 'PX4')
 ylabel('Pitch \theta')
 xlabel('time')
-legend('EKF', 'PX4')
+lgd = legend('EKF', 'PX4')
+lgd.FontSize = 20;
 title('Estimate pitch Naive EKF vs PX4 onboard estimator')
+%saveas(gcf,'EKF_roll.pdf')
 hold off

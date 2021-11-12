@@ -12,7 +12,6 @@ F = [diff(f, phi), diff(f, theta)]
 %syms g real
 g =  9.8;
 h = (-g)*[-sin(theta), cos(theta)*sin(phi), cos(theta)*cos(phi)]';
-
 H = [diff(h, phi), diff(h, theta)]
 
 
