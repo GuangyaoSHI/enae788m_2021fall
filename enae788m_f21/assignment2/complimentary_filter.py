@@ -34,6 +34,9 @@ omega_y = aligned_IMU['w']['/mavros/imu/data_raw']['wy']
 omega_z = aligned_IMU['w']['/mavros/imu/data_raw']['wz']
 # magetic field
 m = aligned_IMU['m']
+mx = m['mx']
+my = m['my']
+mz = m['mz']
 # estimate phi and theta with complimentary filter
 # horizon
 T = aligned_IMU['T']
@@ -81,8 +84,12 @@ for k in range(1, H):
     theta_gyro = theta[k - 1] + t * d_theta
     phi[k] = alpha * phi_acc + (1 - alpha) * phi_gyro
     theta[k] = alpha * theta_acc + (1 - alpha) * theta_gyro
-    psi[k] = np.arctan2(-float(mz * np.sin(phi[k]) - my * np.cos(phi[k])), float(mx * np.cos(theta[k]) +
-                                                                                my * np.sin(theta[k]) * np.sin(phi[k]) +
-                                                                                 mz * np.sin(theta[k]) * np.cos(phi[k])))
-
+    # psi[k] = np.arctan2(-float(mz * np.sin(phi[k]) - my * np.cos(phi[k])), float(mx * np.cos(theta[k]) +
+    #                                                                             my * np.sin(theta[k]) * np.sin(phi[k]) +
+    #                                                                              mz * np.sin(theta[k]) * np.cos(phi[k])))
+    R_psi = np.array([[mz[0]*np.sin(phi[k])-my[0]*np.cos(phi[k]), mx[0]*np.cos(theta[k]) + mz[0]*np.cos(phi[k])*np.sin(theta[k]) + my[0]*np.sin(phi[k])*np.sin(theta[k])],
+                      [mx[0]*np.cos(theta[k]) + mz[0]*np.cos(phi[k])*np.sin(theta[k]) + my[0]*np.sin(phi[k])*np.sin(theta[k]), my[0]*np.cos(phi[k]) - mz[0]*np.sin(phi[k])]
+                      ])
+    s_c = np.linag.inv(R_psi).dot(np.array([mx[k], my[k]]))
+    psi[k] = np.arctan2(s_c[0], s_c[1])
 plot_CF_vicon(bag_info, T, phi, theta, psi)

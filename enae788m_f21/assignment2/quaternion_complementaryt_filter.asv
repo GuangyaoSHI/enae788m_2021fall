@@ -24,15 +24,6 @@ syms mx0 my0 mz0 real
 syms mx my mz real
 syms c s
 
-
-eqns = [ cos(theta)*c*mx0 + (sin(phi)*sin(theta)*c-cos(phi)*s)*my0 +(cos(phi)*sin(theta)*c+sin(phi)*s)*mz0 == mx, ...
+eqns = [ cos(theta)*c*mx0 + (sin(phi)*sin(theta)*c-cos(phi)*s)*my0 +(cos(phi)*sin(theta)*c+sin(phi)*s)*mz0== mx,
          cos(theta)*s*mx0 + (sin(phi)*sin(theta)*s+cos(phi)*c)*my0 + (cos(phi)*sin(theta)*s-sin(phi)*c)*mz0 == my
          ];
-
- eq1 = cos(theta)*c*mx0 + (sin(phi)*sin(theta)*c-cos(phi)*s)*my0 +(cos(phi)*sin(theta)*c+sin(phi)*s)*mz0;
- eq2 = cos(theta)*s*mx0 + (sin(phi)*sin(theta)*s+cos(phi)*c)*my0 + (cos(phi)*sin(theta)*s-sin(phi)*c)*mz0;
- diff(eq1, s)
- diff(eq1, c)
- diff(eq2, s)
- diff(eq2, c)
- S = solve(eqns, [c, s])
