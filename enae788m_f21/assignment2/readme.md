@@ -19,7 +19,7 @@ complimentary_filter_quaternion.py (doesn't work please ignore)
 
 #report
 
-Formulas are documented in assignment2_report.pdf
+Formulas and results are documented in assignment2_report.pdf
 
 
 
